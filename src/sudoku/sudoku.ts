@@ -27,15 +27,21 @@ function isValid(grid: Grid, row: number, col: number, num: number): boolean {
   return true;
 }
 
-function solve(grid: Grid): boolean {
+function shuffleWithRandom<T>(arr: T[], random: () => number): T[] {
+  const copy = [...arr];
+  copy.sort(() => random() - 0.5);
+  return copy;
+}
+
+function solve(grid: Grid, random: () => number): boolean {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       if (grid[i][j] === 0) {
-        const shuffled = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+        const shuffled = shuffleWithRandom([1, 2, 3, 4, 5, 6, 7, 8, 9], random);
         for (const num of shuffled) {
           if (isValid(grid, i, j, num)) {
             grid[i][j] = num;
-            if (solve(grid)) {
+            if (solve(grid, random)) {
               return true;
             }
             grid[i][j] = 0;
@@ -74,19 +80,25 @@ function countSolutions(grid: Grid, limit: number): number {
   return count;
 }
 
-export function generatePuzzle(difficulty: number = 40): { puzzle: Grid; solution: Grid } {
+export function generatePuzzleWithSeed(seed: number, difficulty: number = 40): { puzzle: Grid; solution: Grid } {
+  let s = seed;
+  const rng = () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 4294967296;
+  };
+
   const grid = createEmptyGrid();
-  solve(grid);
+  solve(grid, rng);
 
   const solution = grid.map(row => [...row]);
 
   const cellsToRemove = difficulty;
   let removed = 0;
 
-  const positions = Array.from({ length: 81 }, (_, i) => [Math.floor(i / 9), i % 9])
-    .sort(() => Math.random() - 0.5);
+  const positions = Array.from({ length: 81 }, (_, i) => [Math.floor(i / 9), i % 9]);
+  const shuffled = shuffleWithRandom(positions, rng);
 
-  for (const [row, col] of positions) {
+  for (const [row, col] of shuffled) {
     if (removed >= cellsToRemove) break;
 
     const backup = grid[row][col];
@@ -101,6 +113,26 @@ export function generatePuzzle(difficulty: number = 40): { puzzle: Grid; solutio
   }
 
   return { puzzle: grid, solution };
+}
+
+export function generatePuzzle(difficulty: number = 40): { puzzle: Grid; solution: Grid } {
+  return generatePuzzleWithSeed(Date.now(), difficulty);
+}
+
+export function encodePuzzle(puzzle: Grid): string {
+  return puzzle
+    .flat()
+    .map((v) => (v === 0 ? '.' : String(v)))
+    .join('');
+}
+
+export function decodePuzzle(encoded: string): Grid {
+  const values: number[] = encoded
+    .split('')
+    .map(c => (c === '.' ? 0 : parseInt(c, 10)));
+  return Array.from({ length: 9 }, (_, row) =>
+    Array.from({ length: 9 }, (_, col) => values[row * 9 + col])
+  );
 }
 
 export function isValidPlacement(grid: Grid, row: number, col: number, num: number): boolean {

@@ -1,11 +1,23 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { generatePuzzle } from './sudoku/sudoku';
+import { generatePuzzle, decodePuzzle } from './sudoku/sudoku';
 import type { Grid } from './sudoku/sudoku';
 import StartScreen from './components/StartScreen';
 import SudokuBoardComponent from './components/SudokuBoard';
 import GameOver from './components/GameOver';
 
 type Screen = 'start' | 'playing' | 'gameover';
+
+const DEBUG = true;
+
+function parsePuzzleFromURL(): { puzzle: Grid; solution: Grid } | null {
+  const params = new URLSearchParams(window.location.search);
+  const pStr = params.get('p');
+  const sStr = params.get('s');
+  if (pStr && sStr && pStr.length === 81 && sStr.length === 81) {
+    return { puzzle: decodePuzzle(pStr), solution: decodePuzzle(sStr) };
+  }
+  return null;
+}
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -32,11 +44,13 @@ export default function App() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startGame = useCallback((playerPseudo: string) => {
-    const { puzzle: puz, solution: sol } = generatePuzzle(difficulty);
-    setPuzzle(puz);
-    setSolution(sol);
+    const shared = parsePuzzleFromURL();
+    const result = shared ?? generatePuzzle(difficulty);
+
+    setPuzzle(result.puzzle);
+    setSolution(result.solution);
     setPseudo(playerPseudo);
-    setPlayerGrid(puz.map(r => [...r]));
+    setPlayerGrid(result.puzzle.map(r => [...r]));
     setErrors(0);
     setSeconds(0);
     setDONE(null);
@@ -51,10 +65,12 @@ export default function App() {
 
   const restartGame = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    const { puzzle: puz, solution: sol } = generatePuzzle(difficulty);
-    setPuzzle(puz);
-    setSolution(sol);
-    setPlayerGrid(puz.map(r => [...r]));
+    const shared = parsePuzzleFromURL();
+    const result = shared ?? generatePuzzle(difficulty);
+
+    setPuzzle(result.puzzle);
+    setSolution(result.solution);
+    setPlayerGrid(result.puzzle.map(r => [...r]));
     setErrors(0);
     setSeconds(0);
     setDONE(null);
@@ -69,6 +85,32 @@ export default function App() {
     setScreen('start');
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
+
+  const handleDebugSolve = useCallback(() => {
+    if (!DEBUG || screen !== 'playing') return;
+    const solved = solution.map(r => [...r]);
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (puzzle[r][c] === 0) {
+          solved[r][c] = 0;
+          setPlayerGrid(solved);
+          return;
+        }
+      }
+    }
+  }, [solution, puzzle, screen]);
+
+  useEffect(() => {
+    if (!DEBUG) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        handleDebugSolve();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleDebugSolve]);
 
   // Check win/lose
   useEffect(() => {
@@ -159,12 +201,24 @@ export default function App() {
           </div>
         </div>
 
+        {DEBUG && (
+          <div className="text-center text-xs text-gray-400 mb-2">
+            🔧 Debug: Shift+D pour compléter (minus one)
+          </div>
+        )}
+
         {/* Sudoku board */}
         <SudokuBoardComponent
           puzzle={puzzle}
           solution={solution}
           playerGrid={playerGrid}
           setPlayerGrid={setPlayerGrid}
+          onError={() => setErrors(prev => prev + 1)}
+          onGridComplete={() => {
+            setDONE('win');
+            setScreen('gameover');
+            if (intervalRef.current) clearInterval(intervalRef.current);
+          }}
         />
 
         {/* Difficulty selector for restart */}
@@ -193,6 +247,9 @@ export default function App() {
           reason={DONE}
           time={formatTime(seconds)}
           pseudo={pseudo}
+          errors={errors}
+          puzzle={puzzle}
+          solution={solution}
           onRestart={restartGame}
         />
       )}
