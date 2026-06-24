@@ -1,18 +1,18 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { generatePuzzle, decodePuzzle } from './sudoku/sudoku';
-import type { Grid } from './sudoku/sudoku';
-import StartScreen from './components/StartScreen';
-import SudokuBoardComponent from './components/SudokuBoard';
-import GameOver from './components/GameOver';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { generatePuzzle, decodePuzzle } from "./sudoku/sudoku";
+import type { Grid } from "./sudoku/sudoku";
+import StartScreen from "./components/StartScreen";
+import SudokuBoardComponent from "./components/SudokuBoard";
+import GameOver from "./components/GameOver";
 
-type Screen = 'start' | 'playing' | 'gameover';
+type Screen = "start" | "playing" | "gameover";
 
 const DEBUG = true;
 
 function parsePuzzleFromURL(): { puzzle: Grid; solution: Grid } | null {
   const params = new URLSearchParams(window.location.search);
-  const pStr = params.get('p');
-  const sStr = params.get('s');
+  const pStr = params.get("p");
+  const sStr = params.get("s");
   if (pStr && sStr && pStr.length === 81 && sStr.length === 81) {
     return { puzzle: decodePuzzle(pStr), solution: decodePuzzle(sStr) };
   }
@@ -22,46 +22,49 @@ function parsePuzzleFromURL(): { puzzle: Grid; solution: Grid } | null {
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
 const DIFFICULTIES = [
-  { label: 'Facile 🌟', value: 30 },
-  { label: 'Moyen 🌟🌟', value: 45 },
-  { label: 'Difficile 🌟🌟🌟', value: 55 },
+  { label: "Facile 🌟", value: 30 },
+  { label: "Moyen 🌟🌟", value: 45 },
+  { label: "Difficile 🌟🌟🌟", value: 55 },
 ];
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('start');
-  const [pseudo, setPseudo] = useState('');
+  const [screen, setScreen] = useState<Screen>("start");
+  const [pseudo, setPseudo] = useState("");
   const [difficulty, setDifficulty] = useState<number>(40);
   const [puzzle, setPuzzle] = useState<Grid>([]);
   const [solution, setSolution] = useState<Grid>([]);
   const [playerGrid, setPlayerGrid] = useState<Grid>([]);
   const [errors, setErrors] = useState(0);
   const [seconds, setSeconds] = useState(0);
-  const [DONE, setDONE] = useState<'win' | 'gameover' | null>(null);
+  const [DONE, setDONE] = useState<"win" | "gameover" | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const startGame = useCallback((playerPseudo: string) => {
-    const shared = parsePuzzleFromURL();
-    const result = shared ?? generatePuzzle(difficulty);
+  const startGame = useCallback(
+    (playerPseudo: string) => {
+      const shared = parsePuzzleFromURL();
+      const result = shared ?? generatePuzzle(difficulty);
 
-    setPuzzle(result.puzzle);
-    setSolution(result.solution);
-    setPseudo(playerPseudo);
-    setPlayerGrid(result.puzzle.map(r => [...r]));
-    setErrors(0);
-    setSeconds(0);
-    setDONE(null);
+      setPuzzle(result.puzzle);
+      setSolution(result.solution);
+      setPseudo(playerPseudo);
+      setPlayerGrid(result.puzzle.map((r) => [...r]));
+      setErrors(0);
+      setSeconds(0);
+      setDONE(null);
 
-    setScreen('playing');
+      setScreen("playing");
 
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setSeconds(s => s + 1);
-    }, 1000);
-  }, [difficulty]);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        setSeconds((s) => s + 1);
+      }, 1000);
+    },
+    [difficulty],
+  );
 
   const restartGame = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -70,25 +73,25 @@ export default function App() {
 
     setPuzzle(result.puzzle);
     setSolution(result.solution);
-    setPlayerGrid(result.puzzle.map(r => [...r]));
+    setPlayerGrid(result.puzzle.map((r) => [...r]));
     setErrors(0);
     setSeconds(0);
     setDONE(null);
 
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setSeconds(s => s + 1);
+      setSeconds((s) => s + 1);
     }, 1000);
   }, [difficulty]);
 
   const goToStart = useCallback(() => {
-    setScreen('start');
+    setScreen("start");
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
 
   const handleDebugSolve = useCallback(() => {
-    if (!DEBUG || screen !== 'playing') return;
-    const solved = solution.map(r => [...r]);
+    if (!DEBUG || screen !== "playing") return;
+    const solved = solution.map((r) => [...r]);
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
         if (puzzle[r][c] === 0) {
@@ -103,21 +106,21 @@ export default function App() {
   useEffect(() => {
     if (!DEBUG) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.key === 'D') {
+      if (e.shiftKey && e.key === "D") {
         e.preventDefault();
         handleDebugSolve();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleDebugSolve]);
 
   // Check win/lose
   useEffect(() => {
-    if (screen !== 'playing') return;
+    if (screen !== "playing") return;
     if (errors >= 3) {
-      setDONE('gameover');
-      setScreen('gameover');
+      setDONE("gameover");
+      setScreen("gameover");
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
@@ -126,11 +129,11 @@ export default function App() {
   // Restart game when DONE changes
   useEffect(() => {
     if (DONE !== null) {
-      setScreen('gameover');
+      setScreen("gameover");
     }
   }, [DONE]);
 
-  if (screen === 'start') {
+  if (screen === "start") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
         <div className="max-w-lg mx-auto px-4 py-6">
@@ -153,15 +156,16 @@ export default function App() {
           <h1 className="text-2xl font-bold text-gray-800">🧩 Sudoku Rigolo</h1>
           <button
             onClick={() => {
-              const newPuzzle = DIFFICULTIES[
-                (DIFFICULTIES.findIndex(d => d.value === difficulty) + 1) %
-                  DIFFICULTIES.length
-              ];
+              const newPuzzle =
+                DIFFICULTIES[
+                  (DIFFICULTIES.findIndex((d) => d.value === difficulty) + 1) %
+                    DIFFICULTIES.length
+                ];
               setDifficulty(newPuzzle.value);
             }}
             className="text-sm bg-white rounded-full px-3 py-1 shadow text-gray-600"
           >
-            {DIFFICULTIES.find(d => d.value === difficulty)?.label}
+            {DIFFICULTIES.find((d) => d.value === difficulty)?.label}
           </button>
         </div>
 
@@ -184,28 +188,28 @@ export default function App() {
 
         {/* Error indicator (3 strikes) */}
         <div className="flex justify-center gap-2 mb-4">
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
               className={`px-4 py-2 rounded-full text-xl font-bold transition-all ${
                 i < errors
-                  ? 'bg-red-100 text-red-500 animate-pulse'
-                  : 'bg-gray-100 text-gray-300'
+                  ? "bg-red-100 text-red-500 animate-pulse"
+                  : "bg-gray-100 text-gray-300"
               }`}
             >
               ✖
             </div>
           ))}
           <div className="ml-4 text-sm text-gray-600 font-medium">
-            {errors === 0 ? 'Pas encore d\'erreur !' : errors === 1 ? 'Une de plus...' : 'Attention !'}
+            {errors === 0
+              ? "Pas encore d'erreur !"
+              : errors === 1
+                ? "Une de plus..."
+                : "Attention !"}
           </div>
         </div>
 
-        {DEBUG && (
-          <div className="text-center text-xs text-gray-400 mb-2">
-            🔧 Debug: Shift+D pour compléter (minus one)
-          </div>
-        )}
+        {DEBUG && <></>}
 
         {/* Sudoku board */}
         <SudokuBoardComponent
@@ -213,23 +217,23 @@ export default function App() {
           solution={solution}
           playerGrid={playerGrid}
           setPlayerGrid={setPlayerGrid}
-          onError={() => setErrors(prev => prev + 1)}
+          onError={() => setErrors((prev) => prev + 1)}
           onGridComplete={() => {
-            setDONE('win');
-            setScreen('gameover');
+            setDONE("win");
+            setScreen("gameover");
             if (intervalRef.current) clearInterval(intervalRef.current);
           }}
         />
 
         {/* Difficulty selector for restart */}
         <div className="flex justify-center gap-2 mt-6">
-          {DIFFICULTIES.map(d => (
+          {DIFFICULTIES.map((d) => (
             <button
               key={d.value}
               className={`px-3 py-1 rounded-full text-sm transition-colors ${
                 d.value === difficulty
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-white text-gray-500 hover:bg-gray-100'
+                  ? "bg-purple-500 text-white"
+                  : "bg-white text-gray-500 hover:bg-gray-100"
               }`}
               onClick={() => {
                 setDifficulty(d.value);
