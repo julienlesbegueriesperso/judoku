@@ -136,7 +136,7 @@ export default function App() {
   if (screen === "start") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-        <div className="max-w-lg mx-auto px-4 py-6">
+        <div className="max-w-md mx-auto px-4 py-6">
           <StartScreen onStart={startGame} />
         </div>
       </div>
@@ -145,15 +145,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="max-w-xl mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-3">
           <button
             onClick={goToStart}
-            className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+            className="text-gray-500 hover:text-gray-700 text-xs font-medium"
           >
             ← Retour
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">🧩 Sudoku Rigolo</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-800">🧩 Sudoku Rigolo</h1>
           <button
             onClick={() => {
               const newPuzzle =
@@ -163,35 +163,35 @@ export default function App() {
                 ];
               setDifficulty(newPuzzle.value);
             }}
-            className="text-sm bg-white rounded-full px-3 py-1 shadow text-gray-600"
+            className="text-xs bg-white rounded-full px-2 py-1 shadow text-gray-600"
           >
             {DIFFICULTIES.find((d) => d.value === difficulty)?.label}
           </button>
         </div>
 
         {/* Player info bar */}
-        <div className="flex items-center justify-between bg-white rounded-xl shadow p-4 mb-4">
+        <div className="flex items-center justify-between bg-white rounded-xl shadow p-3 mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">👤</span>
+            <span className="text-xl sm:text-2xl">👤</span>
             <div>
-              <div className="text-sm text-gray-500">Joueur</div>
-              <div className="font-bold text-gray-800">{pseudo}</div>
+              <div className="text-xs text-gray-500">Joueur</div>
+              <div className="font-bold text-gray-800 text-sm sm:text-base">{pseudo}</div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-500">Temps écoulé</div>
-            <div className="font-mono text-2xl font-bold text-blue-700">
+            <div className="text-xs text-gray-500">Temps écoulé</div>
+            <div className="font-mono text-lg sm:text-2xl font-bold text-blue-700">
               {formatTime(seconds)}
             </div>
           </div>
         </div>
 
         {/* Error indicator (3 strikes) */}
-        <div className="flex justify-center gap-2 mb-4">
+        <div className="flex justify-center items-center gap-1.5 sm:gap-2 mb-3">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`px-4 py-2 rounded-full text-xl font-bold transition-all ${
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold transition-all ${
                 i < errors
                   ? "bg-red-100 text-red-500 animate-pulse"
                   : "bg-gray-100 text-gray-300"
@@ -200,7 +200,7 @@ export default function App() {
               ✖
             </div>
           ))}
-          <div className="ml-4 text-sm text-gray-600 font-medium">
+          <div className="ml-2 text-xs text-gray-600 font-medium">
             {errors === 0
               ? "Pas encore d'erreur !"
               : errors === 1
@@ -226,11 +226,11 @@ export default function App() {
         />
 
         {/* Difficulty selector for restart */}
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-1.5 sm:gap-2 mt-4">
           {DIFFICULTIES.map((d) => (
             <button
               key={d.value}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+              className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm transition-colors ${
                 d.value === difficulty
                   ? "bg-purple-500 text-white"
                   : "bg-white text-gray-500 hover:bg-gray-100"

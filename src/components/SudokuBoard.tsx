@@ -12,6 +12,22 @@ const isGridComplete = (grid: Grid, solution: Grid): boolean => {
   return true;
 };
 
+function useCellSize() {
+  const [size, setSize] = useState(48);
+  useEffect(() => {
+    const compute = () => {
+      const vw = window.innerWidth;
+      const padding = 32;
+      const calculated = Math.floor((vw - padding) / 9);
+      setSize(Math.min(48, Math.max(32, calculated)));
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
+  return size;
+}
+
 interface Props {
   puzzle: Grid;
   solution: Grid;
@@ -33,6 +49,8 @@ export default function SudokuBoard({
   const [errorMessage, setErrorMessage] = useState('');
   const [errorEmoji, setErrorEmoji] = useState('');
   const [errorTimer, setErrorTimer] = useState(0);
+  const cellSize = useCellSize();
+  const btnSize = Math.min(40, cellSize - 8);
 
   const handleCellClick = useCallback(
     (row: number, col: number) => {
@@ -215,10 +233,11 @@ export default function SudokuBoard({
         return (
           <div
             key={`${rowIdx}-${colIdx}`}
-            className={`flex items-center justify-center text-xl font-bold cursor-pointer select-none transition-colors ${borderRight} ${borderBottom}`}
+            className={`flex items-center justify-center font-bold cursor-pointer select-none transition-colors ${borderRight} ${borderBottom}`}
             style={{
-              width: 48,
-              height: 48,
+              width: cellSize,
+              height: cellSize,
+              fontSize: 20,
               backgroundColor: getCellBg(rowIdx, colIdx),
               color: puzzle[rowIdx][colIdx] !== 0 ? '#1a1a1a' : '#555',
               fontWeight: puzzle[rowIdx][colIdx] !== 0 ? 700 : 400,
@@ -245,11 +264,15 @@ export default function SudokuBoard({
       <div style={{ border: '2px solid #333' }}>
         {playerGrid.map((rowArr, rowIdx) => renderCellsForRow(rowArr, rowIdx))}
       </div>
-      <div className="flex gap-2 mt-3">
+      <div
+        className="flex gap-1.5 mt-3 flex-wrap justify-center"
+        style={{ maxWidth: cellSize * 9 + 16 }}
+      >
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
           <button
             key={num}
-            className={`w-10 h-10 rounded-lg bg-gradient-to-b from-blue-100 to-blue-200 text-2xl font-bold text-blue-800 shadow hover:from-blue-200 hover:to-blue-300 transition-colors ${getButtonStyle(num)}`}
+            className={`rounded-lg bg-gradient-to-b from-blue-100 to-blue-200 font-bold text-blue-800 shadow hover:from-blue-200 hover:to-blue-300 transition-colors ${getButtonStyle(num)}`}
+            style={{ width: btnSize, height: btnSize, fontSize: 18 }}
             onClick={() => handleNumberInput(num)}
           >
             {num}
@@ -257,7 +280,7 @@ export default function SudokuBoard({
         ))}
       </div>
       <button
-        className="px-4 py-2 rounded-lg bg-gray-200 text-gray-600 font-medium hover:bg-gray-300 transition-colors"
+        className="px-4 py-2 rounded-lg bg-gray-200 text-gray-600 font-medium hover:bg-gray-300 transition-colors text-sm mt-2"
         onClick={handleBackspace}
       >
         ⌫ Effacer

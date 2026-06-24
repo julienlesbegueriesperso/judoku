@@ -24,11 +24,11 @@ export default function StartScreen({ onStart }: StartScreenProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md mx-4">
-        <div className="text-6xl mb-4">🧩</div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Sudoku Rigolo</h1>
-        <p className="text-gray-500 mb-6">
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center max-w-sm w-full mx-auto">
+        <div className="text-5xl sm:text-6xl mb-4">🧩</div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Sudoku Rigolo</h1>
+        <p className="text-gray-500 mb-6 text-sm sm:text-base">
           Attrape les nombres, esquive les <span className="text-red-500 font-bold">✖</span>, et deviens un génie ! 🤓
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -53,12 +53,12 @@ export default function StartScreen({ onStart }: StartScreenProps) {
           </div>
           <button
             type="submit"
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold text-lg shadow hover:from-purple-600 hover:to-blue-600 transition-all"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold text-base sm:text-lg shadow hover:from-purple-600 hover:to-blue-600 transition-all"
           >
             C'est parti ! 🚀
           </button>
         </form>
-        <div className="mt-6 text-sm text-gray-400">
+        <div className="mt-6 text-xs sm:text-sm text-gray-400">
           <p>⚠️ Tu as droit à 3 erreurs max avant Game Over 💔</p>
           <p className="mt-1">🤔 Double chiffre = Zahlen pas prout !</p>
         </div>
